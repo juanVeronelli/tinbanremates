@@ -1,6 +1,6 @@
 import { creditRequestRepository } from "../repositories/creditRequestRepository.js";
 import { userRepository } from "../repositories/userRepository.js";
-import type { CreditStatus } from "@prisma/client";
+import type { CreditStatus } from "../types/index.js";
 
 export const creditService = {
   async requestCredit(userId: string, amount?: number, note?: string) {

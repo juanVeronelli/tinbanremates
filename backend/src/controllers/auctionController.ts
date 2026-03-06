@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { auctionService } from "../services/auctionService.js";
 import { userRepository } from "../repositories/userRepository.js";
-import type { AuctionStatus } from "@prisma/client";
+import type { AuctionStatus } from "../types/index.js";
 
 const VISIBLE_WITHOUT_CREDIT: AuctionStatus[] = ["ACTIVE", "PAUSED", "ENDED"];
 const VISIBLE_WITH_CREDIT_OR_ADMIN: AuctionStatus[] = ["DRAFT", "ACTIVE", "PAUSED", "ENDED"];

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import type { AuctionStatus } from "@prisma/client";
+import type { AuctionStatus } from "../types/index.js";
 
 const prisma = new PrismaClient();
 
@@ -59,14 +59,14 @@ export const auctionRepository = {
     });
   },
 
-  create(data: Parameters<PrismaClient["auction"]["create"]>[0]["data"]) {
+  create(data: any) {
     return prisma.auction.create({
       data,
       include: { category: true, photos: true, attributes: { include: { attribute: true } } },
     });
   },
 
-  update(id: string, data: Parameters<PrismaClient["auction"]["update"]>[0]["data"]) {
+  update(id: string, data: any) {
     return prisma.auction.update({
       where: { id },
       data,

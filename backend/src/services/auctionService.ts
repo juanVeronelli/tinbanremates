@@ -1,8 +1,7 @@
 import { auctionRepository } from "../repositories/auctionRepository.js";
 import { attributeRepository } from "../repositories/attributeRepository.js";
 import { bidRepository } from "../repositories/bidRepository.js";
-import type { CreateAuctionInput } from "../types/index.js";
-import type { AuctionStatus } from "@prisma/client";
+import type { CreateAuctionInput, AuctionStatus } from "../types/index.js";
 
 async function finalizeAuctionIfExpired(auction: any) {
   if (!auction || auction.status !== "ACTIVE" || !auction.endsAt) return auction;
@@ -21,7 +20,7 @@ async function finalizeAuctionIfExpired(auction: any) {
 export const auctionService = {
   async list(filters?: { status?: AuctionStatus; statusIn?: AuctionStatus[]; categoryId?: string }) {
     const auctions = await auctionRepository.findMany(filters);
-    return Promise.all(auctions.map((a) => finalizeAuctionIfExpired(a)));
+    return Promise.all(auctions.map((a: any) => finalizeAuctionIfExpired(a)));
   },
 
   async getById(id: string) {
@@ -51,9 +50,9 @@ export const auctionService = {
     const attrDefs = await attributeRepository.findMany();
     const attributeCreates =
       attributes && Object.keys(attributes).length > 0
-        ? attrDefs
-            .filter((def) => attributes[def.key])
-            .map((def) => ({ attributeId: def.id, value: attributes[def.key]! }))
+        ? (attrDefs as any[])
+            .filter((def) => attributes[(def as any).key])
+            .map((def) => ({ attributeId: (def as any).id, value: attributes[(def as any).key]! }))
         : undefined;
     const auction = await auctionRepository.create({
       ...data,
@@ -71,12 +70,12 @@ export const auctionService = {
     const { attributes: attrInput, photoUrls, ...data } = input;
     const updatePayload: Record<string, unknown> = { ...data };
     if (attrInput !== undefined) {
-      const attrDefs = await attributeRepository.findMany();
+      const attrDefs = (await attributeRepository.findMany()) as any[];
       const attributeCreates =
         Object.keys(attrInput).length > 0
           ? attrDefs
-              .filter((def) => attrInput[def.key])
-              .map((def) => ({ attributeId: def.id, value: attrInput[def.key]! }))
+              .filter((def) => (attrInput as any)[(def as any).key])
+              .map((def) => ({ attributeId: (def as any).id, value: (attrInput as any)[(def as any).key]! }))
           : [];
       updatePayload.attributes = { deleteMany: {}, create: attributeCreates };
     }

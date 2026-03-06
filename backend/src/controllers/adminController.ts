@@ -3,7 +3,7 @@ import { creditService } from "../services/creditService.js";
 import { creditRequestRepository } from "../repositories/creditRequestRepository.js";
 import { categoryRepository } from "../repositories/categoryRepository.js";
 import { attributeRepository } from "../repositories/attributeRepository.js";
-import type { CreditStatus } from "@prisma/client";
+import type { CreditStatus } from "../types/index.js";
 
 export async function listCreditRequests(req: Request, res: Response): Promise<void> {
   try {

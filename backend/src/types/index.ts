@@ -1,4 +1,6 @@
-import type { Role, AuctionStatus, CreditStatus } from "@prisma/client";
+export type Role = "USER" | "ADMIN";
+export type CreditStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type AuctionStatus = "DRAFT" | "ACTIVE" | "PAUSED" | "ENDED" | "CANCELLED";
 
 export interface JwtPayload {
   userId: string;
@@ -34,4 +36,3 @@ export interface PlaceBidInput {
   userId: string;
 }
 
-export type { Role, AuctionStatus, CreditStatus };

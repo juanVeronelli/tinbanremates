@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import type { Role } from "@prisma/client";
+import type { Role } from "../types/index.js";
 
 const prisma = new PrismaClient();
 

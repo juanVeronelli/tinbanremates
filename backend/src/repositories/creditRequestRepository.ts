@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import type { CreditStatus } from "@prisma/client";
+import type { CreditStatus } from "../types/index.js";
 
 const prisma = new PrismaClient();
 
