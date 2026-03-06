@@ -1,0 +1,140 @@
+// Tinban Remates - Esquema de base de datos
+// PostgreSQL + Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum CreditStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AuctionStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  name          String
+  phone         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  role          Role      @default(USER)
+  creditApproved Boolean  @default(false) @map("credit_approved")
+
+  creditRequests CreditRequest[]
+  bids           Bid[]
+  wonAuctions    Auction[] @relation("AuctionWinner")
+}
+
+model CreditRequest {
+  id        String       @id @default(cuid())
+  userId    String       @map("user_id")
+  status    CreditStatus @default(PENDING)
+  amount    Decimal?     @db.Decimal(12, 2)
+  note      String?
+  adminNote String?      @map("admin_note")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Atributos dinámicos configurables por admin (ej: Calidad, Uso, etc.)
+model DynamicAttributeDef {
+  id          String   @id @default(cuid())
+  key         String   @unique  // ej: "calidad", "uso"
+  label       String
+  type        String   @default("text") // text, select, number
+  options     String?  // JSON array para select
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  values AuctionAttribute[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  description String
+  slug        String   @unique
+  sortOrder   Int      @default(0) @map("sort_order")
+
+  auctions Auction[]
+}
+
+model Auction {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  lotNumber       String?       @map("lot_number")
+  minimumPrice    Decimal       @map("minimum_price") @db.Decimal(12, 2)
+  minIncrement    Decimal       @map("min_increment") @db.Decimal(12, 2)
+  currentPrice    Decimal       @default(0) @map("current_price") @db.Decimal(12, 2)
+  status          AuctionStatus @default(DRAFT)
+  startsAt        DateTime?     @map("starts_at")
+  endsAt          DateTime?     @map("ends_at")
+  categoryId      String?       @map("category_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  winnerId        String?       @map("winner_id")
+  closedAt        DateTime?     @map("closed_at")
+
+  category   Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  winner     User?              @relation("AuctionWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+  photos     AuctionPhoto[]
+  bids       Bid[]
+  attributes AuctionAttribute[]
+}
+
+model AuctionPhoto {
+  id        String   @id @default(cuid())
+  auctionId String   @map("auction_id")
+  url       String
+  sortOrder Int      @default(0) @map("sort_order")
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+}
+
+model AuctionAttribute {
+  id         String             @id @default(cuid())
+  auctionId  String             @map("auction_id")
+  attributeId String            @map("attribute_id")
+  value      String
+
+  auction    Auction            @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  attribute  DynamicAttributeDef @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([auctionId, attributeId])
+}
+
+model Bid {
+  id        String   @id @default(cuid())
+  auctionId String   @map("auction_id")
+  userId    String   @map("user_id")
+  amount    Decimal  @db.Decimal(12, 2)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+  @@index([userId])
+}
