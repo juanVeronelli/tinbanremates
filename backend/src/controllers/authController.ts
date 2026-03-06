@@ -12,6 +12,7 @@ export async function register(req: Request, res: Response): Promise<void> {
       res.status(400).json({ error: "EMAIL_IN_USE" });
       return;
     }
+    console.error("Register error:", e?.message ?? e);
     res.status(500).json({ error: "REGISTRATION_FAILED" });
   }
 }

@@ -157,7 +157,7 @@ export default function Home() {
   const activeAuctions = (auctions as any[])?.slice(0, 3) ?? [];
 
   return (
-    <div className="overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
+    <div className="overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 md:-mt-8">
       {/* Hero - pegado al nav, fondo hasta los bordes */}
       <section className="relative w-full pt-6 pb-14 md:pt-10 md:pb-20 bg-gradient-to-b from-slate-50/80 via-white to-transparent">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(11,94,215,0.08),transparent)] pointer-events-none" />
@@ -306,7 +306,7 @@ export default function Home() {
       </section>
 
       {/* CTA final - banda full width, pegado al footer sin hueco */}
-      <section className="w-full pt-16 pb-10 md:pt-20 md:pb-12 bg-gradient-to-br from-[#0b5ed7] via-[#0a56c9] to-[#0746ad]">
+      <section className="w-full pt-16 pb-14 md:pt-20 md:pb-20 -mb-12 md:-mb-16 bg-gradient-to-br from-[#0b5ed7] via-[#0a56c9] to-[#0746ad]">
         <div className="w-full max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white">
             ¿Listo para formar parte?
