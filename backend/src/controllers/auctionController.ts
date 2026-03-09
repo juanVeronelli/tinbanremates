@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { Multer } from "multer";
 import { auctionService } from "../services/auctionService.js";
 import { userRepository } from "../repositories/userRepository.js";
 import type { AuctionStatus } from "../types/index.js";
@@ -127,7 +128,7 @@ export async function deleteAuction(req: Request, res: Response): Promise<void> 
 
 export async function uploadAuctionPhotos(req: Request, res: Response): Promise<void> {
   try {
-    const files = (req as any).files as Express.Multer.File[] | undefined;
+    const files = (req as any).files as Multer["File"][] | undefined;
     if (!files || !files.length) {
       res.status(400).json({ error: "NO_FILES" });
       return;
