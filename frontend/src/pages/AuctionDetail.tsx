@@ -19,6 +19,7 @@ export default function AuctionDetail() {
   const user = useAuthStore((s) => s.user);
   const [currentAuction, setCurrentAuction] = useState<Auction | null>(null);
   const { joinAuction, leaveAuction, onNewBid } = useSocket();
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   const { data: auction, isLoading } = useQuery({
     queryKey: ["auction", id],
@@ -28,6 +29,7 @@ export default function AuctionDetail() {
 
   useEffect(() => {
     setCurrentAuction(auction ?? null);
+    setPhotoIndex(0);
   }, [auction]);
 
   useEffect(() => {
@@ -54,7 +56,18 @@ export default function AuctionDetail() {
   }
 
   const photos = display.photos ?? [];
-  const mainPhoto = photos[0]?.url || "https://placehold.co/800x500/e2e8f0/64748b?text=Sin+imagen";
+  const safeIndex = photos.length ? Math.min(photoIndex, photos.length - 1) : 0;
+  const mainPhoto = photos[safeIndex]?.url || "https://placehold.co/800x500/e2e8f0/64748b?text=Sin+imagen";
+
+  const goPrev = () => {
+    if (!photos.length) return;
+    setPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+  };
+
+  const goNext = () => {
+    if (!photos.length) return;
+    setPhotoIndex((prev) => (prev + 1) % photos.length);
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -68,6 +81,39 @@ export default function AuctionDetail() {
               (e.target as HTMLImageElement).src = "https://placehold.co/800x500/e2e8f0/64748b?text=Sin+imagen";
             }}
           />
+          {photos.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={goPrev}
+                className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+                aria-label="Imagen anterior"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={goNext}
+                className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
+                aria-label="Imagen siguiente"
+              >
+                ›
+              </button>
+              <div className="absolute inset-x-0 bottom-3 flex justify-center gap-2">
+                {photos.map((p, idx) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPhotoIndex(idx)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      idx === safeIndex ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
+                    }`}
+                    aria-label={`Ver imagen ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
           {display.status === "ACTIVE" && display.endsAt && (
             <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1.5 rounded-lg">
               Cierra en <Countdown endsAt={display.endsAt} />

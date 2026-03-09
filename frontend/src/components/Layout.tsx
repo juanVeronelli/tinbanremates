@@ -13,7 +13,10 @@ export default function Layout() {
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
-      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(e.target as Node)
+      ) {
         setAccountOpen(false);
       }
     };
@@ -132,9 +135,15 @@ export default function Layout() {
               className="md:hidden flex flex-col gap-1.5 p-2 -mr-2 rounded-lg text-slate-600 hover:bg-slate-100"
               aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
             >
-              <span className={`block h-0.5 w-6 bg-current rounded-full transition-transform ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
-              <span className={`block h-0.5 w-6 bg-current rounded-full transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
-              <span className={`block h-0.5 w-6 bg-current rounded-full transition-transform ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+              <span
+                className={`block h-0.5 w-6 bg-current rounded-full transition-transform ${menuOpen ? "rotate-45 translate-y-2" : ""}`}
+              />
+              <span
+                className={`block h-0.5 w-6 bg-current rounded-full transition-opacity ${menuOpen ? "opacity-0" : ""}`}
+              />
+              <span
+                className={`block h-0.5 w-6 bg-current rounded-full transition-transform ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`}
+              />
             </button>
           </div>
         </div>
@@ -143,22 +152,42 @@ export default function Layout() {
         {menuOpen && (
           <div className="md:hidden border-t border-slate-200 bg-white">
             <nav className="px-4 py-4 flex flex-col gap-1">
-              <Link to="/" onClick={closeMenus} className="py-3 text-slate-700 font-medium">
+              <Link
+                to="/"
+                onClick={closeMenus}
+                className="py-3 text-slate-700 font-medium"
+              >
                 Inicio
               </Link>
-              <Link to="/subastas" onClick={closeMenus} className="py-3 text-slate-700 font-medium">
+              <Link
+                to="/subastas"
+                onClick={closeMenus}
+                className="py-3 text-slate-700 font-medium"
+              >
                 Subastas
               </Link>
-              <Link to="/reglamento" onClick={closeMenus} className="py-3 text-slate-700 font-medium">
+              <Link
+                to="/reglamento"
+                onClick={closeMenus}
+                className="py-3 text-slate-700 font-medium"
+              >
                 Reglamento
               </Link>
               {user ? (
                 <>
-                  <Link to="/perfil" onClick={closeMenus} className="py-3 text-slate-700 font-medium">
+                  <Link
+                    to="/perfil"
+                    onClick={closeMenus}
+                    className="py-3 text-slate-700 font-medium"
+                  >
                     Mi perfil
                   </Link>
                   {user.role === "ADMIN" && (
-                    <Link to="/admin" onClick={closeMenus} className="py-3 text-slate-700 font-medium">
+                    <Link
+                      to="/admin"
+                      onClick={closeMenus}
+                      className="py-3 text-slate-700 font-medium"
+                    >
                       Panel admin
                     </Link>
                   )}
@@ -175,7 +204,11 @@ export default function Layout() {
                 </>
               ) : (
                 <>
-                  <Link to="/ingresar" onClick={closeMenus} className="py-3 text-slate-700 font-medium">
+                  <Link
+                    to="/ingresar"
+                    onClick={closeMenus}
+                    className="py-3 text-slate-700 font-medium"
+                  >
                     Ingresar
                   </Link>
                   <Link
@@ -192,7 +225,7 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="flex-1 w-full min-w-0 px-4 sm:px-6 lg:px-8 pt-6 pb-12 md:pt-8 md:pb-16">
+      <main className="flex-1 w-full min-w-0 px-4 sm:px-6 lg:px-8 pt-6 md:pt-8">
         <Outlet />
       </main>
       <Footer />

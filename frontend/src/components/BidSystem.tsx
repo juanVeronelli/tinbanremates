@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services/api";
@@ -23,6 +23,9 @@ export default function BidSystem({ auction, onBidPlaced }: BidSystemProps) {
   const queryClient = useQueryClient();
   const [amountInput, setAmountInput] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "error" | "success" | "info" } | null>(null);
+  const [myLastBid, setMyLastBid] = useState<number | null>(null);
+  const [hammerAnimating, setHammerAnimating] = useState(false);
+  const [wasOutbid, setWasOutbid] = useState(false);
   const minIncrement = parseFloat(auction.minIncrement);
   const currentPrice = parseFloat(auction.currentPrice);
   const nextMinBid = currentPrice + minIncrement;
@@ -33,9 +36,14 @@ export default function BidSystem({ auction, onBidPlaced }: BidSystemProps) {
     mutationFn: () => api.bids.place(auction.id, parseFloat(amountInput)),
     onSuccess: (data) => {
       setAmountInput("");
-      onBidPlaced?.(parseFloat(data.auction.currentPrice));
+      const newCurrent = parseFloat(data.auction.currentPrice);
+      const myAmount = parseFloat(data.bid.amount as any);
+      setMyLastBid(myAmount);
+      onBidPlaced?.(newCurrent);
       queryClient.invalidateQueries({ queryKey: ["auction", auction.id] });
       setToast({ message: "Puja realizada correctamente.", type: "success" });
+      setHammerAnimating(true);
+      setTimeout(() => setHammerAnimating(false), 350);
     },
     onError: (err: any) => {
       const raw = (err as Error).message || "No se pudo realizar la puja.";
@@ -64,6 +72,20 @@ export default function BidSystem({ auction, onBidPlaced }: BidSystemProps) {
     if (Number.isNaN(value) || value < nextMinBid) return;
     placeBid.mutate();
   };
+
+  const numericCurrentPrice = currentPrice;
+  const isLeading = myLastBid != null && Math.abs(myLastBid - numericCurrentPrice) < 0.0001;
+  const isOutbid = myLastBid != null && numericCurrentPrice - myLastBid > 0.0001;
+
+  useEffect(() => {
+    if (isOutbid && !wasOutbid) {
+      setWasOutbid(true);
+      setToast({ message: "Otro usuario superó tu puja.", type: "info" });
+    }
+    if (!isOutbid && wasOutbid) {
+      setWasOutbid(false);
+    }
+  }, [isOutbid, wasOutbid]);
 
   if (isEnded) {
     return (
@@ -141,6 +163,18 @@ export default function BidSystem({ auction, onBidPlaced }: BidSystemProps) {
         <div>
           <p className="text-sm text-slate-500">Puja actual</p>
           <p className="text-2xl font-bold text-[#0746ad]">{formatPrice(auction.currentPrice)}</p>
+          {isLeading && (
+            <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 border border-emerald-100">
+              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Vas ganando esta subasta
+            </p>
+          )}
+          {isOutbid && (
+            <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 border border-red-100">
+              <span className="inline-block h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+              Fuiste superado
+            </p>
+          )}
         </div>
         {auction.endsAt && (
           <div className="text-right">
@@ -166,7 +200,23 @@ export default function BidSystem({ auction, onBidPlaced }: BidSystemProps) {
             disabled={placeBid.isPending || !amountInput || parseFloat(amountInput) < nextMinBid}
             className="px-4 py-2 text-white font-semibold rounded-lg bg-[#0b5ed7] hover:bg-[#0952c2] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {placeBid.isPending ? "..." : "Pujar"}
+            <span className="flex items-center gap-2">
+              <span>{placeBid.isPending ? "..." : "Pujar"}</span>
+              <span
+                className={`inline-flex h-5 w-5 items-center justify-center ${
+                  hammerAnimating ? "animate-[bid-hammer_0.35s_ease-out]" : ""
+                }`}
+                aria-hidden="true"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4"
+                  fill="currentColor"
+                >
+                  <path d="M3 21h10v-2H3v2zm17.707-13.293-4.414-4.414a1 1 0 0 0-1.414 0l-3.172 3.172a1 1 0 0 0 0 1.414l.793.793-6.293 6.293 1.414 1.414 6.293-6.293.793.793a1 1 0 0 0 1.414 0l3.172-3.172a1 1 0 0 0 0-1.414z" />
+                </svg>
+              </span>
+            </span>
           </button>
         </div>
         <div className="flex flex-wrap gap-2">

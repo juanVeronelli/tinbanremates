@@ -2,6 +2,7 @@ import { Routes, Route, NavLink } from "react-router-dom";
 import CreditRequestsSection from "@/components/AdminDashboard/CreditRequestsSection";
 import AuctionsAdminSection from "@/components/AdminDashboard/AuctionsAdminSection";
 import AttributeConfigSection from "@/components/AdminDashboard/AttributeConfigSection";
+import CategoryConfigSection from "@/components/AdminDashboard/CategoryConfigSection";
 import NewAuctionForm from "@/components/AdminDashboard/NewAuctionForm";
 import EditAuctionForm from "@/components/AdminDashboard/EditAuctionForm";
 
@@ -9,6 +10,7 @@ const nav = [
   { to: "/admin", end: true, label: "Inicio" },
   { to: "/admin/credits", end: false, label: "Créditos" },
   { to: "/admin/auctions", end: false, label: "Subastas" },
+  { to: "/admin/categories", end: false, label: "Categorías" },
   { to: "/admin/attributes", end: false, label: "Atributos" },
 ];
 
@@ -56,11 +58,22 @@ export default function AdminDashboard() {
         } />
         <Route path="auctions/new" element={<NewAuctionForm />} />
         <Route path="auctions/:id/edit" element={<EditAuctionForm />} />
-        <Route path="attributes" element={
-          <section className="bg-white rounded-xl border border-slate-200 p-4">
-            <AttributeConfigSection />
-          </section>
-        } />
+        <Route
+          path="categories"
+          element={
+            <section className="bg-white rounded-xl border border-slate-200 p-4">
+              <CategoryConfigSection />
+            </section>
+          }
+        />
+        <Route
+          path="attributes"
+          element={
+            <section className="bg-white rounded-xl border border-slate-200 p-4">
+              <AttributeConfigSection />
+            </section>
+          }
+        />
       </Routes>
     </div>
   );

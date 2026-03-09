@@ -23,3 +23,18 @@
     font-size: 16px !important;
   }
 }
+
+@keyframes bid-hammer {
+  0% {
+    transform: rotate(0deg) translateY(0);
+  }
+  30% {
+    transform: rotate(-25deg) translateY(1px);
+  }
+  60% {
+    transform: rotate(10deg) translateY(2px);
+  }
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+}

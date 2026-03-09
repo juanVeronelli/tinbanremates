@@ -124,3 +124,18 @@ export async function deleteAuction(req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: "DELETE_FAILED" });
   }
 }
+
+export async function uploadAuctionPhotos(req: Request, res: Response): Promise<void> {
+  try {
+    const files = (req as any).files as Express.Multer.File[] | undefined;
+    if (!files || !files.length) {
+      res.status(400).json({ error: "NO_FILES" });
+      return;
+    }
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const urls = files.map((file) => `${baseUrl}/uploads/${file.filename}`);
+    res.status(201).json({ urls });
+  } catch {
+    res.status(500).json({ error: "UPLOAD_FAILED" });
+  }
+}

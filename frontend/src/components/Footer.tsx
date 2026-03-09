@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || "5491130744578";
 const EMAIL = "horaciotinban@gmail.com";
 const PHONE = "+54 11 3074 4578";
@@ -36,24 +34,6 @@ const socialLinks = [
 ];
 
 export default function Footer() {
-  const [formState, setFormState] = useState({ nombre: "", telefono: "", email: "", asunto: "", mensaje: "" });
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSending(true);
-    // Simular envío (reemplazar por llamada a API si tenés backend de contacto)
-    await new Promise((r) => setTimeout(r, 800));
-    setFormState({ nombre: "", telefono: "", email: "", asunto: "", mensaje: "" });
-    setSent(true);
-    setSending(false);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
   return (
     <footer className="bg-slate-900 text-slate-300">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
@@ -128,110 +108,12 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Columna derecha: formulario de contacto */}
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-2">Formulario de consulta</h3>
-            <p className="text-slate-400 text-sm mb-6">Completá tus datos y te responderemos a la brevedad.</p>
-            {sent ? (
-              <div className="rounded-xl bg-slate-800/50 border border-slate-700 p-6 text-center">
-                <p className="text-[#0b5ed7] font-medium">¡Mensaje enviado!</p>
-                <p className="text-slate-400 text-sm mt-1">Nos pondremos en contacto pronto.</p>
-                <button
-                  type="button"
-                  onClick={() => setSent(false)}
-                  className="mt-4 text-sm text-[#0b5ed7] hover:underline"
-                >
-                  Enviar otro mensaje
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="footer-nombre" className="block text-sm font-medium text-slate-400 mb-1">
-                    Nombre *
-                  </label>
-                  <input
-                    id="footer-nombre"
-                    name="nombre"
-                    type="text"
-                    required
-                    value={formState.nombre}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-slate-600 bg-slate-800/50 px-3 py-2.5 text-white placeholder-slate-500 focus:border-[#0b5ed7] focus:ring-1 focus:ring-[#0b5ed7] outline-none transition-colors"
-                    placeholder="Tu nombre"
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="footer-telefono" className="block text-sm font-medium text-slate-400 mb-1">
-                      Teléfono *
-                    </label>
-                    <input
-                      id="footer-telefono"
-                      name="telefono"
-                      type="tel"
-                      required
-                      value={formState.telefono}
-                      onChange={handleChange}
-                      className="w-full rounded-lg border border-slate-600 bg-slate-800/50 px-3 py-2.5 text-white placeholder-slate-500 focus:border-[#0b5ed7] focus:ring-1 focus:ring-[#0b5ed7] outline-none transition-colors"
-                      placeholder="+54 11 ..."
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="footer-email" className="block text-sm font-medium text-slate-400 mb-1">
-                      Email *
-                    </label>
-                    <input
-                      id="footer-email"
-                      name="email"
-                      type="email"
-                      required
-                      value={formState.email}
-                      onChange={handleChange}
-                      className="w-full rounded-lg border border-slate-600 bg-slate-800/50 px-3 py-2.5 text-white placeholder-slate-500 focus:border-[#0b5ed7] focus:ring-1 focus:ring-[#0b5ed7] outline-none transition-colors"
-                      placeholder="tu@email.com"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="footer-asunto" className="block text-sm font-medium text-slate-400 mb-1">
-                    Asunto *
-                  </label>
-                  <input
-                    id="footer-asunto"
-                    name="asunto"
-                    type="text"
-                    required
-                    value={formState.asunto}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-slate-600 bg-slate-800/50 px-3 py-2.5 text-white placeholder-slate-500 focus:border-[#0b5ed7] focus:ring-1 focus:ring-[#0b5ed7] outline-none transition-colors"
-                    placeholder="Ej: Consulta sobre subasta"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="footer-mensaje" className="block text-sm font-medium text-slate-400 mb-1">
-                    Mensaje
-                  </label>
-                  <textarea
-                    id="footer-mensaje"
-                    name="mensaje"
-                    rows={3}
-                    value={formState.mensaje}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-slate-600 bg-slate-800/50 px-3 py-2.5 text-white placeholder-slate-500 focus:border-[#0b5ed7] focus:ring-1 focus:ring-[#0b5ed7] outline-none transition-colors resize-none"
-                    placeholder="Escribí tu consulta..."
-                  />
-                </div>
-                <p className="text-xs text-slate-500">Sus datos proporcionados son confidenciales.</p>
-                <button
-                  type="submit"
-                  disabled={sending}
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-semibold text-white bg-[#0b5ed7] hover:bg-[#0952c2] disabled:opacity-60 transition-colors"
-                >
-                  {sending ? "Enviando..." : "Enviar"}
-                </button>
-              </form>
-            )}
+          {/* Columna derecha: texto simple sin formulario */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white">¿Tenés alguna consulta?</h3>
+            <p className="text-slate-400 text-sm">
+              Escribinos por WhatsApp, mandanos un correo o acercate a nuestra dirección. Te vamos a responder a la brevedad.
+            </p>
           </div>
         </div>
 

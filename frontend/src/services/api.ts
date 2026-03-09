@@ -77,5 +77,23 @@ export const api = {
       request<Auction>(`/auctions/${id}/status`, { method: "POST", body: JSON.stringify({ status }) }),
     deleteAuction: (id: string) =>
       request(`/auctions/${id}`, { method: "DELETE" }),
+    uploadAuctionPhotos: async (files: FileList | File[]) => {
+      const form = new FormData();
+      const arr = Array.from(files as any);
+      arr.forEach((file) => {
+        form.append("photos", file);
+      });
+      const token = localStorage.getItem("tinban-auth")
+        ? (JSON.parse(localStorage.getItem("tinban-auth")!).state?.token as string | undefined)
+        : undefined;
+      const res = await fetch(`${BASE}/auctions/photos/upload`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error || res.statusText);
+      return data as { urls: string[] };
+    },
   },
 };

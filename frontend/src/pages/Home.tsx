@@ -305,8 +305,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA final - banda full width, pegado al footer sin hueco */}
-      <section className="w-full pt-16 pb-14 md:pt-20 md:pb-20 -mb-12 md:-mb-16 bg-gradient-to-br from-[#0b5ed7] via-[#0a56c9] to-[#0746ad]">
+      {/* CTA final - banda full width, cercana al footer */}
+      <section className="w-full pt-16 pb-20 md:pt-20 md:pb-24 bg-gradient-to-br from-[#0b5ed7] via-[#0a56c9] to-[#0746ad]">
         <div className="w-full max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white">
             ¿Listo para formar parte?
