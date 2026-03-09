@@ -13,5 +13,7 @@ router.post("/categories", adminController.createCategory);
 router.get("/attributes", adminController.listAttributeDefs);
 router.post("/attributes", adminController.createAttributeDef);
 router.delete("/attributes/:id", adminController.deleteAttributeDef);
+router.post("/auctions/:id/approve-winner", adminController.approveAuctionWinner);
+router.post("/auctions/:id/reject-winner", adminController.rejectAuctionWinner);
 
 export default router;

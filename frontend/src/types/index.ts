@@ -12,6 +12,7 @@ export interface Auction {
   categoryId: string | null;
   winnerId: string | null;
   closedAt: string | null;
+  winnerApproved?: boolean | null;
   /** Solo presente cuando la petición es de un admin (datos de contacto del ganador) */
   winner?: { id: string; name: string; email: string; phone: string | null } | null;
   category?: { id: string; description: string; slug: string } | null;

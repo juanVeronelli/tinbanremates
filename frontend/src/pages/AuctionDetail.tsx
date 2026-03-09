@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@/services/api";
 import BidSystem from "@/components/BidSystem";
 import Countdown from "@/components/Countdown";
@@ -16,6 +16,7 @@ function formatPrice(value: string | number): string {
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const [currentAuction, setCurrentAuction] = useState<Auction | null>(null);
   const { joinAuction, leaveAuction, onNewBid } = useSocket();
@@ -68,6 +69,25 @@ export default function AuctionDetail() {
     if (!photos.length) return;
     setPhotoIndex((prev) => (prev + 1) % photos.length);
   };
+
+  const approveWinner = useMutation({
+    mutationFn: () => api.admin.approveAuctionWinner(id!),
+    onSuccess: (updated) => {
+      setCurrentAuction(updated);
+      queryClient.invalidateQueries({ queryKey: ["auction", id] });
+    },
+  });
+
+  const rejectWinner = useMutation({
+    mutationFn: () => api.admin.rejectAuctionWinner(id!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["auction"] });
+      navigate("/admin/auctions");
+    },
+  });
+
+  const showApprovalCard = display.status === "ENDED" && display.winnerId;
+  const winnerApproved = (display as any).winnerApproved === true;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -167,20 +187,61 @@ export default function AuctionDetail() {
         </div>
       )}
 
-      {user?.role === "ADMIN" && display.winner && display.status === "ENDED" && (
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
-          <h3 className="font-semibold text-slate-800 mb-3">Ganador</h3>
-          <ul className="space-y-1 text-sm text-slate-700">
-            <li><span className="text-slate-500">Nombre:</span> {display.winner.name}</li>
-            <li><span className="text-slate-500">Email:</span>{" "}
-              <a href={`mailto:${display.winner.email}`} className="text-[#0b5ed7] hover:underline">{display.winner.email}</a>
-            </li>
-            {display.winner.phone && (
-              <li><span className="text-slate-500">Teléfono:</span>{" "}
-                <a href={`tel:${display.winner.phone}`} className="text-[#0b5ed7] hover:underline">{display.winner.phone}</a>
-              </li>
-            )}
-          </ul>
+      {showApprovalCard && (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-2">
+          <h3 className="font-semibold text-slate-800">
+            {winnerApproved ? "Ganador confirmado" : "Ganador sujeto a aprobación"}
+          </h3>
+          {!winnerApproved && (
+            <p className="text-sm text-slate-600">
+              La subasta finalizó y el resultado está sujeto a aprobación del administrador.
+            </p>
+          )}
+          {winnerApproved && (
+            <p className="text-sm text-slate-600">
+              La subasta finalizó y el ganador fue aprobado por el administrador.
+            </p>
+          )}
+          {user?.role === "ADMIN" && display.winner && (
+            <div className="mt-2 border-t border-slate-200 pt-3 space-y-2">
+              <p className="text-xs font-medium text-slate-500 uppercase">Datos del posible ganador</p>
+              <ul className="space-y-1 text-sm text-slate-700">
+                <li><span className="text-slate-500">Nombre:</span> {display.winner.name}</li>
+                <li><span className="text-slate-500">Email:</span>{" "}
+                  <a href={`mailto:${display.winner.email}`} className="text-[#0b5ed7] hover:underline">{display.winner.email}</a>
+                </li>
+                {display.winner.phone && (
+                  <li><span className="text-slate-500">Teléfono:</span>{" "}
+                    <a href={`tel:${display.winner.phone}`} className="text-[#0b5ed7] hover:underline">{display.winner.phone}</a>
+                  </li>
+                )}
+              </ul>
+              {!winnerApproved && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => approveWinner.mutate()}
+                    disabled={approveWinner.isPending || rejectWinner.isPending}
+                    className="px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                  >
+                    {approveWinner.isPending ? "Aprobando..." : "Aprobar ganador"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm("Si rechazás el ganador se eliminará la subasta completa. ¿Continuar?")) {
+                        rejectWinner.mutate();
+                      }
+                    }}
+                    disabled={approveWinner.isPending || rejectWinner.isPending}
+                    className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                  >
+                    {rejectWinner.isPending ? "Eliminando..." : "Rechazar y eliminar subasta"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

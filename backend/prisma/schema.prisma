@@ -96,6 +96,7 @@ model Auction {
   updatedAt       DateTime      @updatedAt @map("updated_at")
   winnerId        String?       @map("winner_id")
   closedAt        DateTime?     @map("closed_at")
+  winnerApproved  Boolean       @default(false) @map("winner_approved")
 
   category   Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   winner     User?              @relation("AuctionWinner", fields: [winnerId], references: [id], onDelete: SetNull)

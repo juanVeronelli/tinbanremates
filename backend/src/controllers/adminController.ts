@@ -3,6 +3,7 @@ import { creditService } from "../services/creditService.js";
 import { creditRequestRepository } from "../repositories/creditRequestRepository.js";
 import { categoryRepository } from "../repositories/categoryRepository.js";
 import { attributeRepository } from "../repositories/attributeRepository.js";
+import { auctionService } from "../services/auctionService.js";
 import type { CreditStatus } from "../types/index.js";
 
 export async function listCreditRequests(req: Request, res: Response): Promise<void> {
@@ -68,5 +69,23 @@ export async function deleteAttributeDef(req: Request, res: Response): Promise<v
     res.status(204).send();
   } catch {
     res.status(500).json({ error: "DELETE_FAILED" });
+  }
+}
+
+export async function approveAuctionWinner(req: Request, res: Response): Promise<void> {
+  try {
+    const auction = await auctionService.approveWinner(req.params.id);
+    res.json(auction);
+  } catch {
+    res.status(500).json({ error: "APPROVE_WINNER_FAILED" });
+  }
+}
+
+export async function rejectAuctionWinner(req: Request, res: Response): Promise<void> {
+  try {
+    await auctionService.delete(req.params.id);
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ error: "REJECT_WINNER_FAILED" });
   }
 }

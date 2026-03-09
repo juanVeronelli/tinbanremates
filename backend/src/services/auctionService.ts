@@ -99,6 +99,7 @@ export const auctionService = {
         status: "ENDED",
         closedAt: new Date(),
         winnerId: lastBid ? (lastBid as any).userId : null,
+        winnerApproved: false,
       } as any);
       const updated = await auctionRepository.findById(id);
       return finalizeAuctionIfExpired(updated);
@@ -110,6 +111,11 @@ export const auctionService = {
 
   async delete(id: string) {
     await auctionRepository.delete(id);
+  },
+
+  async approveWinner(id: string) {
+    const auction = await auctionRepository.update(id, { winnerApproved: true } as any);
+    return auction;
   },
 
   async getCategories() {

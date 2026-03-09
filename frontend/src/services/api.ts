@@ -95,5 +95,9 @@ export const api = {
       if (!res.ok) throw new Error((data as { error?: string }).error || res.statusText);
       return data as { urls: string[] };
     },
+    approveAuctionWinner: (id: string) =>
+      request<Auction>(`/admin/auctions/${id}/approve-winner`, { method: "POST" }),
+    rejectAuctionWinner: (id: string) =>
+      request(`/admin/auctions/${id}/reject-winner`, { method: "POST" }),
   },
 };
