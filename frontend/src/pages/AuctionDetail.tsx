@@ -46,6 +46,22 @@ export default function AuctionDetail() {
     };
   }, [id, joinAuction, leaveAuction, onNewBid, queryClient]);
 
+  const approveWinner = useMutation({
+    mutationFn: () => api.admin.approveAuctionWinner(id!),
+    onSuccess: (updated) => {
+      setCurrentAuction(updated);
+      queryClient.invalidateQueries({ queryKey: ["auction", id] });
+    },
+  });
+
+  const rejectWinner = useMutation({
+    mutationFn: () => api.admin.rejectAuctionWinner(id!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["auction"] });
+      navigate("/admin/auctions");
+    },
+  });
+
   const display = currentAuction ?? auction;
 
   if (!id || isLoading || !display) {
@@ -69,22 +85,6 @@ export default function AuctionDetail() {
     if (!photos.length) return;
     setPhotoIndex((prev) => (prev + 1) % photos.length);
   };
-
-  const approveWinner = useMutation({
-    mutationFn: () => api.admin.approveAuctionWinner(id!),
-    onSuccess: (updated) => {
-      setCurrentAuction(updated);
-      queryClient.invalidateQueries({ queryKey: ["auction", id] });
-    },
-  });
-
-  const rejectWinner = useMutation({
-    mutationFn: () => api.admin.rejectAuctionWinner(id!),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["auction"] });
-      navigate("/admin/auctions");
-    },
-  });
 
   const showApprovalCard = display.status === "ENDED" && display.winnerId;
   const winnerApproved = (display as any).winnerApproved === true;

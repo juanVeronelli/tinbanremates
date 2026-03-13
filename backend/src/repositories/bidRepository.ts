@@ -30,4 +30,33 @@ export const bidRepository = {
   countByAuction(auctionId: string) {
     return prisma.bid.count({ where: { auctionId } });
   },
+
+  /**
+   * Devuelve todas las pujas de un usuario incluyendo la subasta,
+   * para poder calcular crédito reservado/consumido.
+   */
+  findByUserWithAuction(userId: string) {
+    return prisma.bid.findMany({
+      where: {
+        userId,
+        auction: {
+          status: {
+            in: ["ACTIVE", "ENDED"],
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+      include: {
+        auction: {
+          select: {
+            id: true,
+            status: true,
+            currentPrice: true,
+            winnerId: true,
+            winnerApproved: true,
+          },
+        },
+      },
+    });
+  },
 };

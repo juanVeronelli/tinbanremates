@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { userRepository } from "../repositories/userRepository.js";
-import { creditRequestRepository } from "../repositories/creditRequestRepository.js";
+import { creditService } from "./creditService.js";
 import type { JwtPayload, AuthUser } from "../types/index.js";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret";
@@ -50,8 +50,8 @@ export const authService = {
   async getProfile(userId: string): Promise<(AuthUser & { creditBalance: number }) | null> {
     const u = await userRepository.findById(userId);
     if (!u) return null;
-    const creditBalance = await creditRequestRepository.getApprovedTotalByUser(userId);
-    return { ...this.toAuthUser(u), creditBalance };
+    const balance = await creditService.getBalanceDetails(userId);
+    return { ...this.toAuthUser(u), creditBalance: balance.available };
   },
 
   toAuthUser(u: { id: string; email: string; name: string; role: string; creditApproved: boolean }): AuthUser {

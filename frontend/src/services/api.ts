@@ -79,8 +79,8 @@ export const api = {
       request(`/auctions/${id}`, { method: "DELETE" }),
     uploadAuctionPhotos: async (files: FileList | File[]) => {
       const form = new FormData();
-      const arr = Array.from(files as any);
-      arr.forEach((file) => {
+      const fileArray: File[] = Array.isArray(files) ? files : Array.from(files);
+      fileArray.forEach((file) => {
         form.append("photos", file);
       });
       const token = localStorage.getItem("tinban-auth")

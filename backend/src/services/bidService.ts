@@ -1,7 +1,7 @@
 import { bidRepository } from "../repositories/bidRepository.js";
 import { auctionRepository } from "../repositories/auctionRepository.js";
 import { userRepository } from "../repositories/userRepository.js";
-import { creditRequestRepository } from "../repositories/creditRequestRepository.js";
+import { creditService } from "./creditService.js";
 import type { PlaceBidInput } from "../types/index.js";
 
 export const bidService = {
@@ -27,11 +27,11 @@ export const bidService = {
 
     const isAdmin = user.role === "ADMIN";
     if (!isAdmin) {
-      const approvedTotal = await creditRequestRepository.getApprovedTotalByUser(userId);
-      if (!approvedTotal || approvedTotal <= 0) {
+      const balance = await creditService.getBalanceDetails(userId);
+      if (!balance.approvedTotal || balance.approvedTotal <= 0) {
         throw new Error("CREDIT_NOT_APPROVED");
       }
-      if (amount > approvedTotal) {
+      if (amount > balance.available) {
         throw new Error("CREDIT_LIMIT_EXCEEDED");
       }
     }

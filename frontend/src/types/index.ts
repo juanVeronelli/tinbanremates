@@ -33,6 +33,7 @@ export interface Category {
   id: string;
   description: string;
   slug: string;
+  sortOrder?: number;
   _count?: { auctions: number };
 }
 

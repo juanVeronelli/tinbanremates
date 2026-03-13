@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import WhatsAppButton from "./WhatsAppButton";
 import Footer from "./Footer";
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
-  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
