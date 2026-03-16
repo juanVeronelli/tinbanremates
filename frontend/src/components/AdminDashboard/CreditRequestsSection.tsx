@@ -26,6 +26,17 @@ export default function CreditRequestsSection() {
             <div>
               <p className="font-medium">{r.user?.name ?? "—"}</p>
               <p className="text-sm text-slate-500">{r.user?.email}</p>
+              {typeof r.amount !== "undefined" && (
+                <p className="text-sm text-slate-700 mt-0.5">
+                  Monto solicitado:{" "}
+                  <span className="font-semibold">
+                    {new Intl.NumberFormat("es-AR", {
+                      style: "currency",
+                      currency: "ARS",
+                    }).format(Number(r.amount ?? 0))}
+                  </span>
+                </p>
+              )}
               {r.note && <p className="text-sm text-slate-600 mt-1">{r.note}</p>}
             </div>
             <div className="flex gap-2">

@@ -9,7 +9,24 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 export const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN ?? "http://localhost:5173", credentials: true }));
+const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    credentials: true,
+    origin(origin, callback) {
+      // origin puede ser undefined (por ejemplo, llamadas desde curl/Postman)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
+  }),
+);
 app.use(express.json());
 app.use("/uploads", express.static(path.resolve("uploads")));
 
