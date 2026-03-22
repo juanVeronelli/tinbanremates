@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/services/api";
 import { useAuthStore } from "@/stores/authStore";
-import Toast from "@/components/Toast";
 
 export default function Profile() {
   const { user } = useAuthStore();
-  const queryClient = useQueryClient();
-  const [note, setNote] = useState("");
-  const [amount, setAmount] = useState("");
-  const [toast, setToast] = useState<{ message: string; type: "error" | "success" | "info" } | null>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["profile"],
@@ -17,43 +13,8 @@ export default function Profile() {
     staleTime: 0,
   });
 
-  const { data: requests } = useQuery({
-    queryKey: ["my-credit-requests"],
-    queryFn: () => api.auth.myCreditRequests(),
-  });
-
-  const requestCredit = useMutation({
-    mutationFn: () =>
-      api.auth.requestCredit({
-        note: note || undefined,
-        amount: amount ? Number(amount) : undefined,
-      }),
-    onSuccess: () => {
-      setNote("");
-      setAmount("");
-      queryClient.invalidateQueries({ queryKey: ["my-credit-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      setToast({ message: "Solicitud de crédito enviada correctamente.", type: "success" });
-    },
-    onError: (err: any) => {
-      const msg = (err as Error).message || "No se pudo enviar la solicitud de crédito.";
-      setToast({ message: msg, type: "error" });
-    },
-  });
-
   const display = profile ?? user;
-  const totalApproved =
-    ((requests as any[]) || []).reduce((sum: number, r: any) => {
-      if (r.status === "APPROVED" && r.amount != null) {
-        const n = Number(r.amount);
-        if (!Number.isNaN(n)) return sum + n;
-      }
-      return sum;
-    }, 0) ?? 0;
-  const creditBalance = (profile as any)?.creditBalance ?? (user as any)?.creditBalance ?? totalApproved;
-  const hasCredit = (display?.creditApproved || creditBalance > 0 || totalApproved > 0);
 
-  // Mantener el store actualizado con el perfil (para que BidSystem vea creditBalance)
   useEffect(() => {
     if (profile && (profile as any).creditBalance !== undefined) {
       useAuthStore.getState().setUser({
@@ -69,87 +30,60 @@ export default function Profile() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
       <h1 className="text-2xl font-bold text-slate-900">Mi perfil</h1>
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <p className="text-slate-600"><strong>Nombre:</strong> {display?.name}</p>
-        <p className="text-slate-600 mt-1"><strong>Email:</strong> {display?.email}</p>
-        <p className="mt-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-slate-100 text-slate-700">
-            {hasCredit ? "Crédito aprobado — Podés pujar" : "Crédito pendiente — Solicitá aprobación"}
-          </span>
-        </p>
-        {(creditBalance > 0 || totalApproved > 0) && (
-          <p className="mt-2 text-sm text-slate-700">
-            <strong>Crédito disponible:</strong>{" "}
-            {new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(creditBalance > 0 ? creditBalance : totalApproved)}
-          </p>
-        )}
-      </div>
-
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <h2 className="font-semibold text-slate-800 mb-2">Solicitar crédito</h2>
-        <p className="text-sm text-slate-600 mb-3">
-          {hasCredit
-            ? "Podés solicitar más crédito cuando lo necesites. El administrador revisará tu solicitud."
-            : "Para poder pujar, un administrador debe aprobar tu crédito. Enviá una solicitud y te notificaremos."}
-        </p>
-        <div className="flex flex-col gap-2 mb-3">
-          <label className="text-sm font-medium text-slate-700">
-            Monto de crédito solicitado
-            <input
-              type="number"
-              min={0}
-              step="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Ej: 100000"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-          </label>
+      <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+        <div>
+          <p className="text-xs text-slate-500 uppercase tracking-wide mb-0.5">Nombre</p>
+          <p className="text-slate-800 font-medium">{display?.name}</p>
         </div>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Mensaje opcional para el administrador"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm mb-2"
-          rows={2}
-        />
-        <button
-          onClick={() => requestCredit.mutate()}
-          disabled={requestCredit.isPending}
-          className="px-4 py-2 text-white text-sm font-medium rounded-lg bg-[#0b5ed7] hover:bg-[#0952c2] disabled:opacity-50"
-        >
-          {requestCredit.isPending ? "Enviando..." : "Enviar solicitud"}
-        </button>
-        {requestCredit.isError && (
-          <p className="mt-2 text-sm text-red-600">{(requestCredit.error as Error).message}</p>
-        )}
+        <div>
+          <p className="text-xs text-slate-500 uppercase tracking-wide mb-0.5">Email</p>
+          <p className="text-slate-800">{display?.email}</p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-500 uppercase tracking-wide mb-0.5">Rol</p>
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-slate-100 text-slate-700">
+            {display?.role === "ADMIN" ? "Administrador" : "Usuario"}
+          </span>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <h2 className="font-semibold text-slate-800 mb-2">Mis solicitudes de crédito</h2>
-        {!(requests as any[])?.length ? (
-          <p className="text-sm text-slate-500">No tenés solicitudes.</p>
-        ) : (
-          <ul className="space-y-2">
-            {(requests as any[]).map((r: any) => (
-              <li key={r.id} className="text-sm">
-                <span className="text-slate-600">{new Date(r.createdAt).toLocaleDateString("es-AR")}</span>
-                {" — "}
-                <span className={r.status === "APPROVED" ? "text-green-600" : r.status === "REJECTED" ? "text-red-600" : "text-amber-600"}>
-                  {r.status === "PENDING" ? "Pendiente" : r.status === "APPROVED" ? "Aprobada" : "Rechazada"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+        <h2 className="font-semibold text-slate-800">Acciones rápidas</h2>
+        <Link
+          to="/creditos"
+          className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+        >
+          <span className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </span>
+          <div>
+            <p className="text-sm font-medium text-slate-800">Mis créditos</p>
+            <p className="text-xs text-slate-500">Ver saldo y solicitar crédito</p>
+          </div>
+          <svg className="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+        <Link
+          to="/cambiar-contrasena"
+          className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+        >
+          <span className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </span>
+          <div>
+            <p className="text-sm font-medium text-slate-800">Cambiar contraseña</p>
+            <p className="text-xs text-slate-500">Actualizar tu contraseña actual</p>
+          </div>
+          <svg className="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
     </div>
   );

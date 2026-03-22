@@ -18,6 +18,7 @@ const upload = multer({ dest: uploadDir });
 router.get("/", optionalAuthMiddleware, auctionController.listAuctions);
 router.get("/categories", auctionController.getCategories);
 router.get("/attributes", auctionController.getAttributeDefs);
+router.get("/catalogs", auctionController.getCatalogs);
 router.get("/:id", optionalAuthMiddleware, auctionController.getAuction);
 router.get("/:id/active", auctionController.getActiveAuction);
 

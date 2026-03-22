@@ -62,3 +62,21 @@ export async function getMyCreditRequests(req: Request, res: Response): Promise<
     res.status(500).json({ error: "FAILED" });
   }
 }
+
+export async function changePassword(req: Request, res: Response): Promise<void> {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword || newPassword.length < 6) {
+      res.status(400).json({ error: "INVALID_DATA" });
+      return;
+    }
+    await authService.changePassword(req.user!.userId, currentPassword, newPassword);
+    res.json({ ok: true });
+  } catch (e: any) {
+    if (e.message === "INVALID_CURRENT_PASSWORD") {
+      res.status(400).json({ error: "INVALID_CURRENT_PASSWORD" });
+      return;
+    }
+    res.status(500).json({ error: "CHANGE_PASSWORD_FAILED" });
+  }
+}

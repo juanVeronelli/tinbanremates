@@ -18,8 +18,10 @@ app.use(
   cors({
     credentials: true,
     origin(origin, callback) {
-      // origin puede ser undefined (por ejemplo, llamadas desde curl/Postman)
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) { callback(null, true); return; }
+      // Permitir cualquier puerto localhost en desarrollo
+      const isLocalhost = /^http:\/\/localhost:\d+$/.test(origin);
+      if (isLocalhost || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;
       }

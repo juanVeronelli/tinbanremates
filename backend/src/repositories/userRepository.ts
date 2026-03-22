@@ -23,6 +23,25 @@ export const userRepository = {
     });
   },
 
+  findByIdWithPassword(id: string) {
+    return prisma.user.findUnique({ where: { id } });
+  },
+
+  findMany() {
+    return prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        role: true,
+        creditApproved: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+
   create(data: { email: string; passwordHash: string; name: string; phone?: string }) {
     return prisma.user.create({
       data: { ...data, role: "USER" as Role },
@@ -34,6 +53,13 @@ export const userRepository = {
     return prisma.user.update({
       where: { id: userId },
       data: { creditApproved: approved },
+    });
+  },
+
+  updatePassword(userId: string, passwordHash: string) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
     });
   },
 };

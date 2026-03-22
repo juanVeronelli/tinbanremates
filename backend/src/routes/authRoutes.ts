@@ -9,5 +9,6 @@ router.post("/login", authController.login);
 router.get("/profile", authMiddleware, authController.getProfile);
 router.post("/credit-request", authMiddleware, authController.requestCredit);
 router.get("/credit-requests", authMiddleware, authController.getMyCreditRequests);
+router.post("/change-password", authMiddleware, authController.changePassword);
 
 export default router;

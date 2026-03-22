@@ -1,4 +1,4 @@
-import type { Auction, Bid, Category, CreditRequest } from "@/types";
+import type { Auction, Bid, Category, Catalog, CreditRequest } from "@/types";
 
 const BASE = (import.meta.env.VITE_API_URL || "") + "/api";
 
@@ -32,12 +32,15 @@ export const api = {
     requestCredit: (body?: { amount?: number; note?: string }) =>
       request("/auth/credit-request", { method: "POST", body: JSON.stringify(body || {}) }),
     myCreditRequests: () => request("/auth/credit-requests"),
+    changePassword: (body: { currentPassword: string; newPassword: string }) =>
+      request("/auth/change-password", { method: "POST", body: JSON.stringify(body) }),
   },
   auctions: {
-    list: (params?: { status?: string; categoryId?: string }) => {
+    list: (params?: { status?: string; categoryId?: string; catalogId?: string }) => {
       const p: Record<string, string> = {};
       if (params?.status) p.status = params.status;
       if (params?.categoryId) p.categoryId = params.categoryId;
+      if (params?.catalogId) p.catalogId = params.catalogId;
       const q = new URLSearchParams(p).toString();
       return request<Auction[]>(`/auctions${q ? `?${q}` : ""}`);
     },
@@ -45,6 +48,7 @@ export const api = {
     getActive: (id: string) => request<Auction>(`/auctions/${id}/active`),
     categories: () => request<Category[]>("/auctions/categories"),
     attributes: () => request("/auctions/attributes"),
+    catalogs: () => request<Catalog[]>("/auctions/catalogs"),
   },
   bids: {
     place: (auctionId: string, amount: number) =>
@@ -99,5 +103,13 @@ export const api = {
       request<Auction>(`/admin/auctions/${id}/approve-winner`, { method: "POST" }),
     rejectAuctionWinner: (id: string) =>
       request(`/admin/auctions/${id}/reject-winner`, { method: "POST" }),
+    users: () => request<any[]>("/admin/users"),
+    catalogs: () => request<Catalog[]>("/admin/catalogs"),
+    createCatalog: (body: { name: string; description?: string; slug: string; sortOrder?: number }) =>
+      request<Catalog>("/admin/catalogs", { method: "POST", body: JSON.stringify(body) }),
+    updateCatalog: (id: string, body: { name?: string; description?: string; slug?: string; sortOrder?: number }) =>
+      request<Catalog>(`/admin/catalogs/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+    deleteCatalog: (id: string) =>
+      request(`/admin/catalogs/${id}`, { method: "DELETE" }),
   },
 };

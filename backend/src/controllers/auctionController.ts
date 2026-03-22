@@ -16,6 +16,10 @@ export async function listAuctions(req: Request, res: Response): Promise<void> {
     const categoryId = typeof rawCategory === "string" && rawCategory && rawCategory !== "undefined"
       ? rawCategory
       : undefined;
+    const rawCatalog = req.query.catalogId;
+    const catalogId = typeof rawCatalog === "string" && rawCatalog && rawCatalog !== "undefined"
+      ? rawCatalog
+      : undefined;
 
     let statusIn: AuctionStatus[] | undefined;
     if (status) {
@@ -30,7 +34,7 @@ export async function listAuctions(req: Request, res: Response): Promise<void> {
       }
     }
 
-    const list = await auctionService.list({ statusIn, categoryId });
+    const list = await auctionService.list({ statusIn, categoryId, catalogId });
     res.json(list);
   } catch {
     res.status(500).json({ error: "LIST_FAILED" });
@@ -78,6 +82,15 @@ export async function getCategories(req: Request, res: Response): Promise<void> 
 export async function getAttributeDefs(req: Request, res: Response): Promise<void> {
   try {
     const list = await auctionService.getAttributeDefs();
+    res.json(list);
+  } catch {
+    res.status(500).json({ error: "FAILED" });
+  }
+}
+
+export async function getCatalogs(req: Request, res: Response): Promise<void> {
+  try {
+    const list = await auctionService.getCatalogs();
     res.json(list);
   } catch {
     res.status(500).json({ error: "FAILED" });

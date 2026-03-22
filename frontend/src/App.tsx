@@ -9,6 +9,8 @@ import AuctionDetail from "./pages/AuctionDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Creditos from "./pages/Creditos";
+import ChangePassword from "./pages/ChangePassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import Reglamento from "./pages/Reglamento";
 
@@ -52,7 +54,6 @@ function AuthSync() {
         });
       })
       .catch(() => {
-        // Token inválido o expirado: limpiar sesión
         useAuthStore.getState().logout();
       });
   }, [token, setUser]);
@@ -73,6 +74,8 @@ export default function App() {
           <Route path="ingresar" element={<Login />} />
           <Route path="registrarse" element={<Register />} />
           <Route path="perfil" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="creditos" element={<PrivateRoute><Creditos /></PrivateRoute>} />
+          <Route path="cambiar-contrasena" element={<PrivateRoute><ChangePassword /></PrivateRoute>} />
           <Route path="admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="reglamento" element={<Reglamento />} />
         </Route>

@@ -80,6 +80,17 @@ model Category {
   auctions Auction[]
 }
 
+model Catalog {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  slug        String   @unique
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  auctions Auction[]
+}
+
 model Auction {
   id              String        @id @default(cuid())
   title           String
@@ -92,6 +103,7 @@ model Auction {
   startsAt        DateTime?     @map("starts_at")
   endsAt          DateTime?     @map("ends_at")
   categoryId      String?       @map("category_id")
+  catalogId       String?       @map("catalog_id")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
   winnerId        String?       @map("winner_id")
@@ -99,6 +111,7 @@ model Auction {
   winnerApproved  Boolean       @default(false) @map("winner_approved")
 
   category   Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  catalog    Catalog?           @relation(fields: [catalogId], references: [id], onDelete: SetNull)
   winner     User?              @relation("AuctionWinner", fields: [winnerId], references: [id], onDelete: SetNull)
   photos     AuctionPhoto[]
   bids       Bid[]

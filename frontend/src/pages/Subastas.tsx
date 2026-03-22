@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/authStore";
 import { api } from "@/services/api";
 import AuctionCard from "@/components/AuctionCard";
+import type { Catalog } from "@/types";
 
 function SkeletonCard() {
   return (
@@ -27,9 +28,9 @@ function EmptyState() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
       </div>
-      <h3 className="text-xl font-semibold text-slate-800 text-center">No hay subastas con estos filtros</h3>
+      <h3 className="text-xl font-semibold text-slate-800 text-center">No hay subastas disponibles</h3>
       <p className="text-slate-500 mt-2 text-center max-w-2xl">
-        {user ? "Probá cambiar el estado o la categoría." : "Probá cambiar el estado o la categoría. Si no hay subastas activas, registrate para que te avisemos cuando haya nuevas."}
+        {user ? "No hay lotes en este catálogo todavía." : "Registrate para que te avisemos cuando haya nuevas subastas."}
       </p>
       {!user && (
         <Link
@@ -43,28 +44,131 @@ function EmptyState() {
   );
 }
 
+function CatalogCard({ catalog, onShowLots }: { catalog: Catalog; onShowLots: () => void }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h2 className="text-lg font-bold text-slate-900">{catalog.name}</h2>
+          {catalog.description && (
+            <p className="text-sm text-slate-500 mt-1">{catalog.description}</p>
+          )}
+        </div>
+        <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+          {catalog._count?.auctions ?? 0} lote{(catalog._count?.auctions ?? 0) !== 1 ? "s" : ""}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={onShowLots}
+        className="w-full mt-1 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#0b5ed7] hover:bg-[#0952c2] transition-colors"
+      >
+        MOSTRAR LOTES
+      </button>
+    </div>
+  );
+}
+
 export default function Subastas() {
-  const [categoryId, setCategoryId] = useState<string>("");
+  const [selectedCatalogId, setSelectedCatalogId] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"catalogs" | "all">("catalogs");
 
-  const { data: auctions, isLoading } = useQuery({
-    queryKey: ["auctions", status, categoryId],
-    queryFn: () => api.auctions.list({ status: status || undefined, categoryId: categoryId || undefined }),
+  const { data: catalogs, isLoading: loadingCatalogs } = useQuery({
+    queryKey: ["catalogs"],
+    queryFn: () => api.auctions.catalogs(),
   });
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => api.auctions.categories(),
+  const { data: auctions, isLoading: loadingAuctions } = useQuery({
+    queryKey: ["auctions", status, selectedCatalogId],
+    queryFn: () => api.auctions.list({
+      status: status || undefined,
+      catalogId: selectedCatalogId || undefined,
+    }),
+    enabled: viewMode === "all" || selectedCatalogId !== null,
   });
 
+  const catalogList = (catalogs as Catalog[]) ?? [];
   const list = (auctions as any[]) ?? [];
-  const hasResults = list.length > 0;
+  const selectedCatalog = catalogList.find((c) => c.id === selectedCatalogId);
 
+  const handleShowLots = (catalogId: string) => {
+    setSelectedCatalogId(catalogId);
+    setViewMode("all");
+  };
+
+  const handleBackToCatalogs = () => {
+    setSelectedCatalogId(null);
+    setViewMode("catalogs");
+    setStatus("");
+  };
+
+  // ─── Vista de catálogos ───────────────────────────────────────────────
+  if (viewMode === "catalogs") {
+    return (
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Subastas</h1>
+            <p className="text-slate-600 mt-1">Seleccioná un catálogo para ver sus lotes disponibles.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setViewMode("all"); setSelectedCatalogId(null); }}
+            className="shrink-0 px-4 py-2 rounded-lg text-sm text-slate-600 border border-slate-300 hover:bg-slate-50"
+          >
+            Ver todos los lotes
+          </button>
+        </div>
+
+        {loadingCatalogs ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6 animate-pulse h-36" />
+            ))}
+          </div>
+        ) : catalogList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+            <svg className="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <p className="font-medium">No hay catálogos disponibles aún.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {catalogList.map((catalog) => (
+              <CatalogCard
+                key={catalog.id}
+                catalog={catalog}
+                onShowLots={() => handleShowLots(catalog.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── Vista de lotes ──────────────────────────────────────────────────
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Catálogo de subastas</h1>
-        <p className="text-slate-600 mt-1">Filtrá y explorá los lotes disponibles. Entrá a cada uno para pujar en vivo.</p>
+        <button
+          type="button"
+          onClick={handleBackToCatalogs}
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-3"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver a catálogos
+        </button>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+          {selectedCatalog ? selectedCatalog.name : "Todos los lotes"}
+        </h1>
+        {selectedCatalog?.description && (
+          <p className="text-slate-600 mt-1">{selectedCatalog.description}</p>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -79,28 +183,16 @@ export default function Subastas() {
           <option value="PAUSED">Pausadas</option>
           <option value="ENDED">Finalizadas</option>
         </select>
-        <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-[#0b5ed7] focus:border-[#0b5ed7] outline-none transition-shadow"
-        >
-          <option value="">Todas las categorías</option>
-          {(categories as any[])?.map((c: any) => (
-            <option key={c.id} value={c.id}>
-              {c.description} {c._count?.auctions != null ? `(${c._count.auctions})` : ""}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="min-h-[65vh] flex flex-col">
-        {isLoading ? (
+        {loadingAuctions ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
-        ) : hasResults ? (
+        ) : list.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {list.map((auction: any) => (
               <AuctionCard key={auction.id} auction={auction} />

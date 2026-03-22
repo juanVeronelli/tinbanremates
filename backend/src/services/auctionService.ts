@@ -18,7 +18,7 @@ async function finalizeAuctionIfExpired(auction: any) {
 }
 
 export const auctionService = {
-  async list(filters?: { status?: AuctionStatus; statusIn?: AuctionStatus[]; categoryId?: string }) {
+  async list(filters?: { status?: AuctionStatus; statusIn?: AuctionStatus[]; categoryId?: string; catalogId?: string }) {
     const auctions = await auctionRepository.findMany(filters);
     return Promise.all(auctions.map((a: any) => finalizeAuctionIfExpired(a)));
   },
@@ -79,6 +79,12 @@ export const auctionService = {
           : [];
       updatePayload.attributes = { deleteMany: {}, create: attributeCreates };
     }
+    if (photoUrls !== undefined) {
+      updatePayload.photos = {
+        deleteMany: {},
+        create: photoUrls.map((url, i) => ({ url, sortOrder: i })),
+      };
+    }
     if (updatePayload.startsAt != null && typeof updatePayload.startsAt === "string") {
       updatePayload.startsAt = new Date(updatePayload.startsAt as string);
     }
@@ -124,5 +130,9 @@ export const auctionService = {
 
   async getAttributeDefs() {
     return attributeRepository.findMany();
+  },
+
+  async getCatalogs() {
+    return (await import("../repositories/catalogRepository.js")).catalogRepository.findMany();
   },
 };

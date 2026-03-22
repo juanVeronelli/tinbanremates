@@ -47,6 +47,15 @@ export const authService = {
     return jwt.verify(token, JWT_SECRET) as JwtPayload;
   },
 
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await userRepository.findByIdWithPassword(userId);
+    if (!user) throw new Error("USER_NOT_FOUND");
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) throw new Error("INVALID_CURRENT_PASSWORD");
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await userRepository.updatePassword(userId, passwordHash);
+  },
+
   async getProfile(userId: string): Promise<(AuthUser & { creditBalance: number }) | null> {
     const u = await userRepository.findById(userId);
     if (!u) return null;

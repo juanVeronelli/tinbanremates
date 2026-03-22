@@ -4,18 +4,20 @@ import type { AuctionStatus } from "../types/index.js";
 const prisma = new PrismaClient();
 
 export const auctionRepository = {
-  findMany(filters?: { status?: AuctionStatus; statusIn?: AuctionStatus[]; categoryId?: string }) {
-    const where: { status?: AuctionStatus | { in: AuctionStatus[] }; categoryId?: string } = {};
+  findMany(filters?: { status?: AuctionStatus; statusIn?: AuctionStatus[]; categoryId?: string; catalogId?: string }) {
+    const where: any = {};
     if (filters?.statusIn?.length) {
       where.status = { in: filters.statusIn };
     } else if (filters?.status) {
       where.status = filters.status;
     }
     if (filters?.categoryId) where.categoryId = filters.categoryId;
+    if (filters?.catalogId) where.catalogId = filters.catalogId;
     return prisma.auction.findMany({
       where,
       include: {
         category: true,
+        catalog: true,
         photos: { orderBy: { sortOrder: "asc" } },
         attributes: { include: { attribute: true } },
         _count: { select: { bids: true } },
@@ -29,6 +31,7 @@ export const auctionRepository = {
       where: { id },
       include: {
         category: true,
+        catalog: true,
         photos: { orderBy: { sortOrder: "asc" } },
         attributes: { include: { attribute: true } },
         bids: { orderBy: { createdAt: "desc" }, take: 10, include: { user: { select: { name: true } } } },
@@ -41,6 +44,7 @@ export const auctionRepository = {
       where: { id },
       include: {
         category: true,
+        catalog: true,
         photos: { orderBy: { sortOrder: "asc" } },
         attributes: { include: { attribute: true } },
         bids: { orderBy: { createdAt: "desc" }, take: 10, include: { user: { select: { name: true } } } },

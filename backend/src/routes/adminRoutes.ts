@@ -15,5 +15,10 @@ router.post("/attributes", adminController.createAttributeDef);
 router.delete("/attributes/:id", adminController.deleteAttributeDef);
 router.post("/auctions/:id/approve-winner", adminController.approveAuctionWinner);
 router.post("/auctions/:id/reject-winner", adminController.rejectAuctionWinner);
+router.get("/users", adminController.listUsers);
+router.get("/catalogs", adminController.listCatalogs);
+router.post("/catalogs", adminController.createCatalog);
+router.patch("/catalogs/:id", adminController.updateCatalog);
+router.delete("/catalogs/:id", adminController.deleteCatalog);
 
 export default router;

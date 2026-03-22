@@ -3,6 +3,8 @@ import { creditService } from "../services/creditService.js";
 import { creditRequestRepository } from "../repositories/creditRequestRepository.js";
 import { categoryRepository } from "../repositories/categoryRepository.js";
 import { attributeRepository } from "../repositories/attributeRepository.js";
+import { catalogRepository } from "../repositories/catalogRepository.js";
+import { userRepository } from "../repositories/userRepository.js";
 import { auctionService } from "../services/auctionService.js";
 import type { CreditStatus } from "../types/index.js";
 
@@ -87,5 +89,61 @@ export async function rejectAuctionWinner(req: Request, res: Response): Promise<
     res.status(204).send();
   } catch {
     res.status(500).json({ error: "REJECT_WINNER_FAILED" });
+  }
+}
+
+// ── Usuarios ──────────────────────────────────────────────────────────────
+export async function listUsers(req: Request, res: Response): Promise<void> {
+  try {
+    const users = await userRepository.findMany();
+    // Añadir creditBalance a cada usuario
+    const result = await Promise.all(
+      (users as any[]).map(async (u) => {
+        const balance = await (await import("../services/creditService.js")).creditService.getBalanceDetails(u.id);
+        return { ...u, creditBalance: balance.available, creditApproved: u.creditApproved };
+      })
+    );
+    res.json(result);
+  } catch {
+    res.status(500).json({ error: "FAILED" });
+  }
+}
+
+// ── Catálogos ─────────────────────────────────────────────────────────────
+export async function listCatalogs(req: Request, res: Response): Promise<void> {
+  try {
+    const list = await catalogRepository.findMany();
+    res.json(list);
+  } catch {
+    res.status(500).json({ error: "FAILED" });
+  }
+}
+
+export async function createCatalog(req: Request, res: Response): Promise<void> {
+  try {
+    const { name, description, slug, sortOrder } = req.body;
+    const cat = await catalogRepository.create({ name, description, slug, sortOrder });
+    res.status(201).json(cat);
+  } catch {
+    res.status(500).json({ error: "CREATE_FAILED" });
+  }
+}
+
+export async function updateCatalog(req: Request, res: Response): Promise<void> {
+  try {
+    const { name, description, slug, sortOrder } = req.body;
+    const cat = await catalogRepository.update(req.params.id, { name, description, slug, sortOrder });
+    res.json(cat);
+  } catch {
+    res.status(500).json({ error: "UPDATE_FAILED" });
+  }
+}
+
+export async function deleteCatalog(req: Request, res: Response): Promise<void> {
+  try {
+    await catalogRepository.delete(req.params.id);
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ error: "DELETE_FAILED" });
   }
 }

@@ -2,7 +2,7 @@ export default function Reglamento() {
   const condiciones = [
     "El remate se realiza en forma online exclusivamente.",
     "Una semana antes de la subasta los clientes tendrán en nuestra web el catálogo con fotos y videos de cada uno de los lotes a subastar.",
-    "Cada uno será explicado detalladamente por el martillero 30 minutos antes de la subasta; los clientes podrán interactuar con el martillero.",
+    "Cada lote estará explicado detalladamente con fotos y videos en el catálogo, disponible una semana antes de la subasta.",
     "Para poder participar de la subasta los clientes tendrán que llenar un formulario de inscripción completando los datos solicitados en el botón Registrarse.",
     "Posteriormente deben enviar un WhatsApp donde se les pedirá que hagan una transferencia bancaria y se les dará crédito para poder comprar.",
     "Si no adquirió ningún lote se devuelve el total de la seña entregada o bien queda para otra subasta.",

@@ -47,7 +47,7 @@ export default function Layout() {
               />
             </Link>
 
-            {/* Desktop: solo Subastas + Cuenta/Ingresar */}
+            {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-4">
               <Link
                 to="/subastas"
@@ -56,6 +56,16 @@ export default function Layout() {
               >
                 Subastas
               </Link>
+
+              {user && (
+                <Link
+                  to="/creditos"
+                  onClick={closeMenus}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-[#0b5ed7] transition-colors"
+                >
+                  Créditos
+                </Link>
+              )}
 
               {user ? (
                 <div className="relative" ref={accountRef}>
@@ -70,13 +80,20 @@ export default function Layout() {
                     Cuenta
                   </button>
                   {accountOpen && (
-                    <div className="absolute right-0 top-full mt-1 py-1 w-48 bg-white rounded-xl border border-slate-200 shadow-lg">
+                    <div className="absolute right-0 top-full mt-1 py-1 w-52 bg-white rounded-xl border border-slate-200 shadow-lg">
                       <Link
                         to="/perfil"
                         onClick={closeMenus}
                         className="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
                       >
                         Mi perfil
+                      </Link>
+                      <Link
+                        to="/cambiar-contrasena"
+                        onClick={closeMenus}
+                        className="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                      >
+                        Cambiar contraseña
                       </Link>
                       <Link
                         to="/reglamento"
@@ -127,7 +144,7 @@ export default function Layout() {
               )}
             </nav>
 
-            {/* Mobile: menú hamburguesa */}
+            {/* Mobile: hamburguesa */}
             <button
               type="button"
               onClick={() => setMenuOpen((o) => !o)}
@@ -175,11 +192,25 @@ export default function Layout() {
               {user ? (
                 <>
                   <Link
+                    to="/creditos"
+                    onClick={closeMenus}
+                    className="py-3 text-slate-700 font-medium"
+                  >
+                    Créditos
+                  </Link>
+                  <Link
                     to="/perfil"
                     onClick={closeMenus}
                     className="py-3 text-slate-700 font-medium"
                   >
                     Mi perfil
+                  </Link>
+                  <Link
+                    to="/cambiar-contrasena"
+                    onClick={closeMenus}
+                    className="py-3 text-slate-700 font-medium"
+                  >
+                    Cambiar contraseña
                   </Link>
                   {user.role === "ADMIN" && (
                     <Link

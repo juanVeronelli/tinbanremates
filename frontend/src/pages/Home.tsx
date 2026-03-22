@@ -48,7 +48,7 @@ const steps = [
   {
     title: "Explorá el catálogo",
     description:
-      "Una semana antes de cada subasta publicamos fotos y videos de los lotes. 30 min antes podés interactuar con el martillero.",
+      "Una semana antes de cada subasta publicamos fotos y videos de todos los lotes disponibles.",
     icon: (
       <svg
         className="w-8 h-8"
@@ -90,7 +90,7 @@ const steps = [
 const benefits = [
   "Remates 100% online, desde tu casa o celular.",
   "Catálogo con fotos y videos una semana antes.",
-  "Interacción con el martillero 30 minutos antes de cada subasta.",
+  "Catálogo con fotos y videos disponible una semana antes de cada subasta.",
   "Crédito seguro: si no adquirís ningún lote, se devuelve la seña o queda para otra subasta.",
 ];
 
