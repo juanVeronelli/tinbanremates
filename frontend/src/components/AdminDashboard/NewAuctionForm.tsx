@@ -2,9 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services/api";
-import type { Category, Catalog, DynamicAttributeDef, Auction } from "@/types";
-
-const N8N_WEBHOOK_URL = "https://n8n.veronellico.com/webhook/tinban/nueva-subasta";
+import type { Category, Catalog, DynamicAttributeDef } from "@/types";
 
 function datetimeLocalToISO(val: string): string | undefined {
   if (!val) return undefined;
@@ -44,10 +42,6 @@ export default function NewAuctionForm() {
   const [coverIndex, setCoverIndex] = useState(0);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [showNotifyModal, setShowNotifyModal] = useState(false);
-  const [createdAuction, setCreatedAuction] = useState<Auction | null>(null);
-  const [isNotifying, setIsNotifying] = useState(false);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["auctions", "categories"],
@@ -102,22 +96,12 @@ export default function NewAuctionForm() {
       const { photoFiles: _pf, coverIndex: _ci, ...rest } = body;
       return api.admin.createAuction({ ...rest, photoUrls });
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "auctions"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "catalog", preCatalogId] });
-      setCreatedAuction(data);
-      setShowNotifyModal(true);
+      navigate(backPath);
     },
   });
-
-  const handleNotifyUsers = async () => {
-    setIsNotifying(true);
-    try { await fetch(N8N_WEBHOOK_URL, { method: "GET" }); }
-    catch (err) { console.error("[TINBAN] webhook error:", err); }
-    finally { setIsNotifying(false); setShowNotifyModal(false); navigate(backPath); }
-  };
-
-  const handleSkipNotify = () => { setShowNotifyModal(false); navigate(backPath); };
 
   const attrs = (attributes as DynamicAttributeDef[]).sort((a, b) => a.sortOrder - b.sortOrder);
   const availableToAdd = attrs.filter((a) => !selectedAttrKeys.includes(a.key));
@@ -416,39 +400,6 @@ export default function NewAuctionForm() {
         <p className="mt-2 text-sm text-red-600">No se pudo crear el lote. Revisá los datos e intentá de nuevo.</p>
       )}
 
-      {showNotifyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5">
-            <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-[#0b5ed7]/10 flex items-center justify-center">
-                <svg className="w-7 h-7 text-[#0b5ed7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">¿Notificar a los usuarios?</h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  El lote{" "}
-                  <span className="font-medium text-slate-700">
-                    {createdAuction?.lotNumber ? `#${createdAuction.lotNumber} — ` : ""}
-                    {createdAuction?.title}
-                  </span>{" "}
-                  fue creado exitosamente.
-                </p>
-              </div>
-            </div>
-            <div className="border-t border-slate-100" />
-            <div className="flex flex-col-reverse sm:flex-row gap-3">
-              <button type="button" onClick={handleSkipNotify} disabled={isNotifying} className="flex-1 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50">
-                No, omitir
-              </button>
-              <button type="button" onClick={handleNotifyUsers} disabled={isNotifying} className="flex-1 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg bg-[#0b5ed7] text-white hover:bg-[#0952c2] disabled:opacity-50 flex items-center justify-center gap-2">
-                {isNotifying ? "Enviando..." : "Sí, notificar usuarios"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
