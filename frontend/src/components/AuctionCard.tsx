@@ -14,7 +14,7 @@ function statusLabel(status: Auction["status"]): string {
   const map: Record<Auction["status"], string> = {
     DRAFT: "Borrador",
     ACTIVE: "En curso",
-    PAUSED: "Pausada",
+    PAUSED: "Inactivo",
     ENDED: "Finalizada",
     CANCELLED: "Cancelada",
   };

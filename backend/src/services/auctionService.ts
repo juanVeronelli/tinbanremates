@@ -57,7 +57,7 @@ export const auctionService = {
     const auction = await auctionRepository.create({
       ...data,
       currentPrice: data.minimumPrice,
-      status: "ACTIVE",
+      status: (data as any).status ?? "PAUSED",
       photos: photoUrls?.length
         ? { create: photoUrls.map((url, i) => ({ url, sortOrder: i })) }
         : undefined,

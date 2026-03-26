@@ -46,33 +46,73 @@ function EmptyState() {
 
 function CatalogCard({ catalog, onShowLots }: { catalog: Catalog; onShowLots: () => void }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <h2 className="text-lg font-bold text-slate-900">{catalog.name}</h2>
-          {catalog.description && (
-            <p className="text-sm text-slate-500 mt-1">{catalog.description}</p>
-          )}
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      {catalog.photoUrl ? (
+        <div className="aspect-video bg-slate-100 overflow-hidden">
+          <img
+            src={catalog.photoUrl}
+            alt={catalog.name}
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
         </div>
-        <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
-          {catalog._count?.auctions ?? 0} lote{(catalog._count?.auctions ?? 0) !== 1 ? "s" : ""}
-        </span>
+      ) : (
+        <div className="aspect-video bg-slate-100 flex items-center justify-center text-slate-300">
+          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+      )}
+      <div className="p-5 flex flex-col gap-3 flex-1">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-slate-900">{catalog.name}</h2>
+            {catalog.description && (
+              <p className="text-sm text-slate-500 mt-1">{catalog.description}</p>
+            )}
+          </div>
+          <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+            {catalog._count?.auctions ?? 0} lote{(catalog._count?.auctions ?? 0) !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onShowLots}
+          className="mt-auto w-full px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#0b5ed7] hover:bg-[#0952c2] transition-colors"
+        >
+          VER LOTES
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={onShowLots}
-        className="w-full mt-1 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#0b5ed7] hover:bg-[#0952c2] transition-colors"
-      >
-        MOSTRAR LOTES
-      </button>
     </div>
   );
+}
+
+function sortAuctions(list: any[], sort: string): any[] {
+  return [...list].sort((a, b) => {
+    if (sort === "lot") {
+      const na = parseInt(a.lotNumber ?? "", 10);
+      const nb = parseInt(b.lotNumber ?? "", 10);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      if (!isNaN(na)) return -1;
+      if (!isNaN(nb)) return 1;
+      return (a.lotNumber ?? "").localeCompare(b.lotNumber ?? "");
+    }
+    if (sort === "price_asc") {
+      return parseFloat(a.currentPrice) - parseFloat(b.currentPrice);
+    }
+    if (sort === "price_desc") {
+      return parseFloat(b.currentPrice) - parseFloat(a.currentPrice);
+    }
+    return 0;
+  });
 }
 
 export default function Subastas() {
   const [selectedCatalogId, setSelectedCatalogId] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("");
   const [viewMode, setViewMode] = useState<"catalogs" | "all">("catalogs");
+  const [sort, setSort] = useState<string>("lot");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
 
   const { data: catalogs, isLoading: loadingCatalogs } = useQuery({
     queryKey: ["catalogs"],
@@ -88,19 +128,37 @@ export default function Subastas() {
     enabled: viewMode === "all" || selectedCatalogId !== null,
   });
 
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => api.auctions.categories(),
+    enabled: viewMode === "all" || selectedCatalogId !== null,
+  });
+
   const catalogList = (catalogs as Catalog[]) ?? [];
-  const list = (auctions as any[]) ?? [];
+  const rawList = (auctions as any[]) ?? [];
+  const categoryList = (categories as any[]) ?? [];
   const selectedCatalog = catalogList.find((c) => c.id === selectedCatalogId);
+
+  const filteredList = rawList.filter((a) => {
+    if (categoryFilter && a.category?.id !== categoryFilter) return false;
+    return true;
+  });
+  const list = sortAuctions(filteredList, sort);
 
   const handleShowLots = (catalogId: string) => {
     setSelectedCatalogId(catalogId);
     setViewMode("all");
+    setSort("lot");
+    setCategoryFilter("");
+    setStatus("");
   };
 
   const handleBackToCatalogs = () => {
     setSelectedCatalogId(null);
     setViewMode("catalogs");
     setStatus("");
+    setSort("lot");
+    setCategoryFilter("");
   };
 
   // ─── Vista de catálogos ───────────────────────────────────────────────
@@ -109,7 +167,7 @@ export default function Subastas() {
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Subastas</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Catálogos</h1>
             <p className="text-slate-600 mt-1">Seleccioná un catálogo para ver sus lotes disponibles.</p>
           </div>
           <button
@@ -124,7 +182,7 @@ export default function Subastas() {
         {loadingCatalogs ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6 animate-pulse h-36" />
+              <div key={i} className="bg-white rounded-2xl border border-slate-200 animate-pulse h-64" />
             ))}
           </div>
         ) : catalogList.length === 0 ? (
@@ -173,14 +231,36 @@ export default function Subastas() {
 
       <div className="flex flex-wrap gap-3">
         <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-[#0b5ed7] focus:border-[#0b5ed7] outline-none transition-shadow"
+        >
+          <option value="lot">Nº de lote</option>
+          <option value="price_asc">Precio: menor a mayor</option>
+          <option value="price_desc">Precio: mayor a menor</option>
+        </select>
+
+        {categoryList.length > 0 && (
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-[#0b5ed7] focus:border-[#0b5ed7] outline-none transition-shadow"
+          >
+            <option value="">Todas las categorías</option>
+            {categoryList.map((cat: any) => (
+              <option key={cat.id} value={cat.id}>{cat.description}</option>
+            ))}
+          </select>
+        )}
+
+        <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-[#0b5ed7] focus:border-[#0b5ed7] outline-none transition-shadow"
         >
-          <option value="">Todas</option>
-          <option value="DRAFT">Borrador</option>
+          <option value="">Todos los estados</option>
           <option value="ACTIVE">En curso</option>
-          <option value="PAUSED">Pausadas</option>
+          <option value="PAUSED">Inactivo</option>
           <option value="ENDED">Finalizadas</option>
         </select>
       </div>

@@ -3,7 +3,8 @@ import CreditRequestsSection from "@/components/AdminDashboard/CreditRequestsSec
 import AuctionsAdminSection from "@/components/AdminDashboard/AuctionsAdminSection";
 import AttributeConfigSection from "@/components/AdminDashboard/AttributeConfigSection";
 import CategoryConfigSection from "@/components/AdminDashboard/CategoryConfigSection";
-import CatalogSection from "@/components/AdminDashboard/CatalogSection";
+import CatalogsLotsSection from "@/components/AdminDashboard/CatalogsLotsSection";
+import CatalogLotDetail from "@/components/AdminDashboard/CatalogLotDetail";
 import UsersAdminSection from "@/components/AdminDashboard/UsersAdminSection";
 import NewAuctionForm from "@/components/AdminDashboard/NewAuctionForm";
 import EditAuctionForm from "@/components/AdminDashboard/EditAuctionForm";
@@ -11,8 +12,7 @@ import EditAuctionForm from "@/components/AdminDashboard/EditAuctionForm";
 const nav = [
   { to: "/admin", end: true, label: "Inicio" },
   { to: "/admin/credits", end: false, label: "Créditos" },
-  { to: "/admin/auctions", end: false, label: "Subastas" },
-  { to: "/admin/catalogs", end: false, label: "Catálogos" },
+  { to: "/admin/catalogs", end: false, label: "Catálogos / Lotes" },
   { to: "/admin/categories", end: false, label: "Categorías" },
   { to: "/admin/attributes", end: false, label: "Atributos" },
   { to: "/admin/users", end: false, label: "Usuarios" },
@@ -55,18 +55,18 @@ export default function AdminDashboard() {
             <CreditRequestsSection />
           </section>
         } />
-        <Route path="auctions" element={
+        <Route path="catalogs" element={
           <section className="bg-white rounded-xl border border-slate-200 p-4">
-            <AuctionsAdminSection />
+            <CatalogsLotsSection />
+          </section>
+        } />
+        <Route path="catalogs/:catalogId" element={
+          <section className="bg-white rounded-xl border border-slate-200 p-4">
+            <CatalogLotDetail />
           </section>
         } />
         <Route path="auctions/new" element={<NewAuctionForm />} />
         <Route path="auctions/:id/edit" element={<EditAuctionForm />} />
-        <Route path="catalogs" element={
-          <section className="bg-white rounded-xl border border-slate-200 p-4">
-            <CatalogSection />
-          </section>
-        } />
         <Route path="categories" element={
           <section className="bg-white rounded-xl border border-slate-200 p-4">
             <CategoryConfigSection />

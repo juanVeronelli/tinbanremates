@@ -92,6 +92,10 @@ export const auctionRepository = {
     });
   },
 
+  bulkSetStatus(catalogId: string, status: AuctionStatus) {
+    return prisma.auction.updateMany({ where: { catalogId }, data: { status } });
+  },
+
   delete(id: string) {
     return prisma.auction.delete({ where: { id } });
   },

@@ -4,9 +4,10 @@ import { creditRequestRepository } from "../repositories/creditRequestRepository
 import { categoryRepository } from "../repositories/categoryRepository.js";
 import { attributeRepository } from "../repositories/attributeRepository.js";
 import { catalogRepository } from "../repositories/catalogRepository.js";
+import { auctionRepository } from "../repositories/auctionRepository.js";
 import { userRepository } from "../repositories/userRepository.js";
 import { auctionService } from "../services/auctionService.js";
-import type { CreditStatus } from "../types/index.js";
+import type { CreditStatus, AuctionStatus } from "../types/index.js";
 
 export async function listCreditRequests(req: Request, res: Response): Promise<void> {
   try {
@@ -96,7 +97,6 @@ export async function rejectAuctionWinner(req: Request, res: Response): Promise<
 export async function listUsers(req: Request, res: Response): Promise<void> {
   try {
     const users = await userRepository.findMany();
-    // Añadir creditBalance a cada usuario
     const result = await Promise.all(
       (users as any[]).map(async (u) => {
         const balance = await (await import("../services/creditService.js")).creditService.getBalanceDetails(u.id);
@@ -119,10 +119,39 @@ export async function listCatalogs(req: Request, res: Response): Promise<void> {
   }
 }
 
+export async function getCatalogDetail(req: Request, res: Response): Promise<void> {
+  try {
+    const catalog = await catalogRepository.findByIdWithAuctions(req.params.id);
+    if (!catalog) { res.status(404).json({ error: "NOT_FOUND" }); return; }
+    res.json(catalog);
+  } catch {
+    res.status(500).json({ error: "FAILED" });
+  }
+}
+
+export async function getNextLotNumber(req: Request, res: Response): Promise<void> {
+  try {
+    const count = await catalogRepository.countByCatalog(req.params.id);
+    res.json({ nextLotNumber: String(count + 1) });
+  } catch {
+    res.status(500).json({ error: "FAILED" });
+  }
+}
+
+export async function bulkSetCatalogStatus(req: Request, res: Response): Promise<void> {
+  try {
+    const { status } = req.body as { status: AuctionStatus };
+    await auctionRepository.bulkSetStatus(req.params.id, status);
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: "BULK_STATUS_FAILED" });
+  }
+}
+
 export async function createCatalog(req: Request, res: Response): Promise<void> {
   try {
-    const { name, description, slug, sortOrder } = req.body;
-    const cat = await catalogRepository.create({ name, description, slug, sortOrder });
+    const { name, description, slug, photoUrl, sortOrder } = req.body;
+    const cat = await catalogRepository.create({ name, description, slug, photoUrl, sortOrder });
     res.status(201).json(cat);
   } catch {
     res.status(500).json({ error: "CREATE_FAILED" });
@@ -131,8 +160,8 @@ export async function createCatalog(req: Request, res: Response): Promise<void> 
 
 export async function updateCatalog(req: Request, res: Response): Promise<void> {
   try {
-    const { name, description, slug, sortOrder } = req.body;
-    const cat = await catalogRepository.update(req.params.id, { name, description, slug, sortOrder });
+    const { name, description, slug, photoUrl, sortOrder } = req.body;
+    const cat = await catalogRepository.update(req.params.id, { name, description, slug, photoUrl, sortOrder });
     res.json(cat);
   } catch {
     res.status(500).json({ error: "UPDATE_FAILED" });

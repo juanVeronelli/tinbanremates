@@ -18,6 +18,9 @@ router.post("/auctions/:id/reject-winner", adminController.rejectAuctionWinner);
 router.get("/users", adminController.listUsers);
 router.get("/catalogs", adminController.listCatalogs);
 router.post("/catalogs", adminController.createCatalog);
+router.get("/catalogs/:id/next-lot-number", adminController.getNextLotNumber);
+router.post("/catalogs/:id/bulk-status", adminController.bulkSetCatalogStatus);
+router.get("/catalogs/:id", adminController.getCatalogDetail);
 router.patch("/catalogs/:id", adminController.updateCatalog);
 router.delete("/catalogs/:id", adminController.deleteCatalog);
 

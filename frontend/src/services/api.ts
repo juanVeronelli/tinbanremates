@@ -22,6 +22,23 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
+async function uploadFiles(files: FileList | File[]): Promise<{ urls: string[] }> {
+  const form = new FormData();
+  const fileArray: File[] = Array.isArray(files) ? files : Array.from(files);
+  fileArray.forEach((file) => form.append("photos", file));
+  const token = localStorage.getItem("tinban-auth")
+    ? (JSON.parse(localStorage.getItem("tinban-auth")!).state?.token as string | undefined)
+    : undefined;
+  const res = await fetch(`${BASE}/auctions/photos/upload`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as { error?: string }).error || res.statusText);
+  return data as { urls: string[] };
+}
+
 export const api = {
   auth: {
     register: (body: { email: string; password: string; name: string; phone?: string }) =>
@@ -81,33 +98,21 @@ export const api = {
       request<Auction>(`/auctions/${id}/status`, { method: "POST", body: JSON.stringify({ status }) }),
     deleteAuction: (id: string) =>
       request(`/auctions/${id}`, { method: "DELETE" }),
-    uploadAuctionPhotos: async (files: FileList | File[]) => {
-      const form = new FormData();
-      const fileArray: File[] = Array.isArray(files) ? files : Array.from(files);
-      fileArray.forEach((file) => {
-        form.append("photos", file);
-      });
-      const token = localStorage.getItem("tinban-auth")
-        ? (JSON.parse(localStorage.getItem("tinban-auth")!).state?.token as string | undefined)
-        : undefined;
-      const res = await fetch(`${BASE}/auctions/photos/upload`, {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: form,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error || res.statusText);
-      return data as { urls: string[] };
-    },
+    uploadAuctionPhotos: uploadFiles,
     approveAuctionWinner: (id: string) =>
       request<Auction>(`/admin/auctions/${id}/approve-winner`, { method: "POST" }),
     rejectAuctionWinner: (id: string) =>
       request(`/admin/auctions/${id}/reject-winner`, { method: "POST" }),
     users: () => request<any[]>("/admin/users"),
     catalogs: () => request<Catalog[]>("/admin/catalogs"),
-    createCatalog: (body: { name: string; description?: string; slug: string; sortOrder?: number }) =>
+    getCatalogDetail: (id: string) => request<Catalog>(`/admin/catalogs/${id}`),
+    getNextLotNumber: (catalogId: string) =>
+      request<{ nextLotNumber: string }>(`/admin/catalogs/${catalogId}/next-lot-number`),
+    bulkSetCatalogStatus: (catalogId: string, status: string) =>
+      request(`/admin/catalogs/${catalogId}/bulk-status`, { method: "POST", body: JSON.stringify({ status }) }),
+    createCatalog: (body: { name: string; description?: string; slug: string; photoUrl?: string; sortOrder?: number }) =>
       request<Catalog>("/admin/catalogs", { method: "POST", body: JSON.stringify(body) }),
-    updateCatalog: (id: string, body: { name?: string; description?: string; slug?: string; sortOrder?: number }) =>
+    updateCatalog: (id: string, body: { name?: string; description?: string; slug?: string; photoUrl?: string; sortOrder?: number }) =>
       request<Catalog>(`/admin/catalogs/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
     deleteCatalog: (id: string) =>
       request(`/admin/catalogs/${id}`, { method: "DELETE" }),

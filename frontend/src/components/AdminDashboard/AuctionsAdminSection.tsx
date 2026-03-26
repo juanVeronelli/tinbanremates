@@ -77,14 +77,12 @@ export default function AuctionsAdminSection() {
                 >
                   Ver
                 </Link>
-                {a.status !== "ENDED" && (
-                  <Link
-                    to={`/admin/auctions/${a.id}/edit`}
-                    className="text-xs px-2 py-1 rounded border border-slate-300 text-slate-700 hover:bg-slate-50"
-                  >
-                    Editar
-                  </Link>
-                )}
+                <Link
+                  to={`/admin/auctions/${a.id}/edit`}
+                  className="text-xs px-2 py-1 rounded border border-slate-300 text-slate-700 hover:bg-slate-50"
+                >
+                  Editar
+                </Link>
                 {(a.status === "ACTIVE" || a.status === "PAUSED") && (
                   <button
                     type="button"
@@ -100,16 +98,14 @@ export default function AuctionsAdminSection() {
                     {a.status === "ACTIVE" ? "Pausar" : "Reanudar"}
                   </button>
                 )}
-                {a.status !== "ENDED" && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(a.id, a.title)}
-                    disabled={deletingId === a.id || deleteAuction.isPending}
-                    className="text-xs px-2 py-1 rounded border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
-                  >
-                    {deletingId === a.id ? "..." : "Eliminar"}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(a.id, a.title)}
+                  disabled={deletingId === a.id || deleteAuction.isPending}
+                  className="text-xs px-2 py-1 rounded border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  {deletingId === a.id ? "..." : "Eliminar"}
+                </button>
               </div>
             </li>
           ))

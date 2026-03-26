@@ -54,7 +54,7 @@ export default function Layout() {
                 onClick={closeMenus}
                 className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-[#0b5ed7] transition-colors"
               >
-                Subastas
+                Catálogos
               </Link>
 
               {user && (
@@ -180,7 +180,7 @@ export default function Layout() {
                 onClick={closeMenus}
                 className="py-3 text-slate-700 font-medium"
               >
-                Subastas
+                Catálogos
               </Link>
               <Link
                 to="/reglamento"

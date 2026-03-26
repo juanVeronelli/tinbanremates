@@ -29,9 +29,11 @@ export interface Catalog {
   name: string;
   description: string | null;
   slug: string;
+  photoUrl: string | null;
   sortOrder: number;
   createdAt: string;
   _count?: { auctions: number };
+  auctions?: Auction[];
 }
 
 export interface Bid {

@@ -89,8 +89,24 @@ export default function AuctionDetail() {
   const showApprovalCard = display.status === "ENDED" && display.winnerId;
   const winnerApproved = (display as any).winnerApproved === true;
 
+  const handleBack = () => {
+    if (display.catalogId) {
+      navigate(`/admin/catalogs/${display.catalogId}`);
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Back button */}
+      <button
+        type="button"
+        onClick={handleBack}
+        className="text-slate-500 hover:text-slate-800 text-sm flex items-center gap-1 min-h-[36px]"
+      >
+        ← Volver{display.catalog ? ` al catálogo "${display.catalog.name}"` : ""}
+      </button>
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="aspect-video bg-slate-100 relative">
           <img
